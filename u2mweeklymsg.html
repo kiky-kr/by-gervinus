@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>상담일지 이미지 생성</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdnjs.cloudflare.com/ajax/libs/pretendard/1.3.9/static/pretendard.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --bg: #F6F7FA;
+    --panel: #FFFFFF;
+    --ink: #1F2430;
+    --ink-soft: #6B7280;
+    --line: #E4E7EE;
+    --accent: #3B5BDB;
+    --accent-tint: #EEF1FF;
+    --accent-tint-2: #F6F8FF;
+    --radius: 14px;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    min-height: 100vh;
+  }
+
+  .app{
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 28px;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+  @media (max-width: 880px){
+    .app{ grid-template-columns: 1fr; padding: 20px 16px 48px; }
+  }
+
+  .brand{
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .brand .dot{
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+  }
+  .brand h1{
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .brand p{
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .panel{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .field{ margin-bottom: 20px; }
+  .field label{
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .field .hint{
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 400;
+    margin-left: 6px;
+  }
+  .row2{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  input[type="text"], input[type="date"], textarea{
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+    background: #FCFCFD;
+    outline: none;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  input[type="text"]:focus, input[type="date"]:focus, textarea:focus{
+    border-color: var(--accent);
+    background: #fff;
+  }
+  textarea{
+    min-height: 110px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .eyebrow{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 10px;
+  }
+  .eyebrow::before{
+    content: "";
+    width: 14px; height: 1px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  .bullet-list{ display: flex; flex-direction: column; gap: 8px; }
+  .bullet-row{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bullet-row input{ flex: 1; }
+  .icon-btn{
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink-soft);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s ease;
+  }
+  .icon-btn:hover{ border-color: #d33; color: #d33; }
+
+  .add-btn{
+    margin-top: 4px;
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px dashed var(--line);
+    background: var(--accent-tint-2);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .add-btn:hover{ background: var(--accent-tint); }
+
+  .empty-note{
+    font-size: 12px;
+    color: var(--ink-soft);
+    padding: 10px 0 2px;
+  }
+
+  /* Preview side */
+  .preview-side{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .preview-stage{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  #card{
+    width: 560px;
+    max-width: 100%;
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+  }
+  .card-head{
+    padding: 26px 32px 18px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .card-head .label{
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: .06em;
+  }
+  .card-head .name{
+    font-size: 22px;
+    font-weight: 800;
+    margin: 6px 0 2px;
+    letter-spacing: -0.01em;
+  }
+  .card-head .date{
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .card-body{ padding: 24px 32px 20px; }
+
+  .section{ position: relative; padding-left: 20px; }
+  .section + .section{ margin-top: 26px; }
+  .section::before{
+    content: "";
+    position: absolute;
+    left: 0; top: 4px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .section .tag{
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: .02em;
+  }
+  .section .body-text{
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--ink);
+    white-space: pre-wrap;
+    word-break: keep-all;
+  }
+  .checklist{ display: flex; flex-direction: column; gap: 8px; }
+  .checklist .item{
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+  .checklist .item::before{
+    content: "- ";
+  }
+  .card-foot{
+    padding: 12px 32px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .card-foot span{
+    font-size: 10.5px;
+    color: #B9BFCD;
+    letter-spacing: .02em;
+  }
+
+  .connector{
+    position: absolute;
+    left: 3px;
+    top: 12px;
+    width: 1px;
+    height: calc(100% + 14px);
+    background: var(--line);
+  }
+
+  .actions{
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+  .btn{
+    flex: 1;
+    padding: 13px 16px;
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .15s ease, transform .05s ease;
+  }
+  .btn:active{ transform: scale(.98); }
+  .btn-primary{ background: var(--accent); color: #fff; }
+  .btn-secondary{ background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  .btn:hover{ opacity: .92; }
+
+  .toast{
+    position: fixed;
+    bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(12px);
+    background: #1F2430;
+    color: #fff;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 50;
+  }
+  .toast.show{
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="brand">
+    <span class="dot"></span>
+    <div>
+      <h1>상담일지 이미지 생성</h1>
+      <p>입력하면 카톡·문자로 보내기 좋은 세로형 카드 이미지가 만들어져요</p>
+    </div>
+  </div>
+
+  <!-- Input Panel -->
+  <div class="panel">
+    <div class="field row2">
+      <div>
+        <label for="studentName">학생 이름</label>
+        <input type="text" id="studentName" placeholder="예: 김요원" />
+      </div>
+      <div>
+        <label for="reportDate">상담 날짜</label>
+        <input type="date" id="reportDate" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>이번주 상담 내용</label>
+      <textarea id="thisWeek" placeholder="예: 이번 주 수학 진도는 이차함수 단원까지 마쳤습니다. 개념 이해는 빠른 편이나 계산 실수가 잦아 반복 연습이 필요합니다."></textarea>
+    </div>
+
+    <div class="field">
+      <label>다음주 점검사항 <span class="hint">필요한 만큼만 추가하세요</span></label>
+      <div class="bullet-list" id="bulletList"></div>
+      <button type="button" class="add-btn" id="addBulletBtn">+ 점검사항 추가</button>
+      <div class="empty-note" id="emptyNote" style="display:none;">추가된 항목이 없으면 이미지에 이 섹션이 표시되지 않아요.</div>
+    </div>
+  </div>
+
+  <!-- Preview Panel -->
+  <div class="preview-side">
+    <div class="preview-stage">
+      <div id="card">
+        <div class="card-head">
+          <div class="label">WEEKLY REPORT</div>
+          <div class="name" id="p-name">김요원 학생</div>
+          <div class="date" id="p-date">2026. 7. 18</div>
+        </div>
+        <div class="card-body">
+          <div class="section" id="p-thisweek-section">
+            <div class="tag">이번주 상담 내용</div>
+            <div class="body-text" id="p-thisweek">여기에 상담 내용이 표시됩니다.</div>
+          </div>
+          <div class="section next" id="p-nextweek-section">
+            <div class="tag">다음주 점검사항</div>
+            <div class="checklist" id="p-checklist"></div>
+          </div>
+        </div>
+        <div class="card-foot">
+          <span class="foot-academy">유투엠 몰입관 학원</span>
+          <span id="p-academy">이번주 학습 코칭 안내</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" id="copyBtn">이미지 복사</button>
+      <button class="btn btn-primary" id="downloadBtn">이미지 다운로드</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const studentName = document.getElementById('studentName');
+  const reportDate = document.getElementById('reportDate');
+  const thisWeek = document.getElementById('thisWeek');
+  const bulletList = document.getElementById('bulletList');
+  const addBulletBtn = document.getElementById('addBulletBtn');
+  const emptyNote = document.getElementById('emptyNote');
+
+  const pName = document.getElementById('p-name');
+  const pDate = document.getElementById('p-date');
+  const pThisWeek = document.getElementById('p-thisweek');
+  const pNextSection = document.getElementById('p-nextweek-section');
+  const pChecklist = document.getElementById('p-checklist');
+
+  let bulletCount = 0;
+
+  function addBulletRow(value=''){
+    bulletCount++;
+    const row = document.createElement('div');
+    row.className = 'bullet-row';
+    row.innerHTML = `
+      <input type="text" class="bullet-input" placeholder="예: 이차함수 그래프 연습문제 20제 풀이" value="${value.replace(/"/g,'&quot;')}" />
+      <button type="button" class="icon-btn remove-btn" title="삭제">✕</button>
+    `;
+    bulletList.appendChild(row);
+    row.querySelector('.bullet-input').addEventListener('input', updatePreview);
+    row.querySelector('.remove-btn').addEventListener('click', () => {
+      row.remove();
+      updatePreview();
+    });
+    updatePreview();
+  }
+
+  addBulletBtn.addEventListener('click', () => addBulletRow());
+
+  function formatDate(dateStr){
+    if(!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    if(isNaN(d)) return '';
+    return `${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()}`;
+  }
+
+  function updatePreview(){
+    pName.textContent = (studentName.value.trim() || '김요원') + ' 학생';
+    const df = formatDate(reportDate.value);
+    pDate.textContent = df || '날짜 미입력';
+    pThisWeek.textContent = thisWeek.value.trim() || '이번 주 상담 내용을 입력해주세요.';
+
+    const items = Array.from(bulletList.querySelectorAll('.bullet-input'))
+      .map(i => i.value.trim())
+      .filter(v => v.length > 0);
+
+    pChecklist.innerHTML = '';
+    if(items.length === 0){
+      pNextSection.style.display = 'none';
+      emptyNote.style.display = 'block';
+    } else {
+      pNextSection.style.display = 'block';
+      emptyNote.style.display = 'none';
+      items.forEach(text => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.textContent = text;
+        pChecklist.appendChild(div);
+      });
+    }
+  }
+
+  [studentName, reportDate, thisWeek].forEach(el => el.addEventListener('input', updatePreview));
+
+  // start with one empty bullet row for convenience
+  addBulletRow();
+  updatePreview();
+
+  // Toast
+  const toastEl = document.getElementById('toast');
+  let toastTimer = null;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+  }
+
+  function renderCanvas(){
+    const card = document.getElementById('card');
+    const capture = () => html2canvas(card, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+    if(document.fonts && document.fonts.ready){
+      return document.fonts.ready.then(capture);
+    }
+    return capture();
+  }
+
+  document.getElementById('downloadBtn').addEventListener('click', () => {
+    renderCanvas().then(canvas => {
+      const link = document.createElement('a');
+      const name = (studentName.value.trim() || '학생') + '_상담일지';
+      link.download = `${name}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('이미지가 다운로드되었어요');
+    }).catch(() => showToast('이미지 생성 중 오류가 발생했어요'));
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    renderCanvas().then(canvas => {
+      canvas.toBlob(blob => {
+        if(!blob) { showToast('이미지 생성 중 오류가 발생했어요'); return; }
+        if(navigator.clipboard && window.ClipboardItem){
+          navigator.clipboard.write([ new ClipboardItem({ 'image/png': blob }) ])
+            .then(() => showToast('클립보드에 이미지가 복사되었어요'))
+            .catch(() => showToast('복사에 실패했어요. 다운로드를 이용해주세요'));
+        } else {
+          showToast('이 브라우저는 이미지 복사를 지원하지 않아요');
+        }
+      });
+    }).catch(() => showToast('이미지 생성 중 오류가 발생했어요'));
+  });
+</script>
+</body>
+</html>
