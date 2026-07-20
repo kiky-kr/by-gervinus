@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>유투엠 몰입관 - 상담 문자 이미지</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdnjs.cloudflare.com/ajax/libs/pretendard/1.3.9/static/pretendard.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --bg:#F6F7FA; --panel:#FFFFFF; --ink:#1F2430; --ink-soft:#6B7280;
+    --line:#E4E7EE; --accent:#3B5BDB; --accent-tint:#EEF1FF; --accent-tint-2:#F6F8FF; --radius:14px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background:var(--bg); color:var(--ink);
+    font-family:'Pretendard',-apple-system,BlinkMacSystemFont,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+    min-height:100vh; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:28px 20px 64px; }
+  .brand{ display:flex; align-items:baseline; gap:10px; margin-bottom:20px; }
+  .brand .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); }
+  .brand h1{ font-size:18px; font-weight:800; margin:0; letter-spacing:-0.01em; }
+  .brand p{ margin:0; font-size:13px; color:var(--ink-soft); }
+  .steps{ display:flex; gap:8px; margin-bottom:22px; flex-wrap:wrap; }
+  .step-chip{ font-size:12px; font-weight:600; color:var(--ink-soft);
+    padding:6px 12px; border-radius:20px; background:#EEF0F5; display:flex; align-items:center; gap:6px; }
+  .step-chip.active{ background:var(--accent); color:#fff; }
+  .step-chip.done{ background:var(--accent-tint); color:var(--accent); }
+  .panel{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:24px; }
+  .panel h2{ font-size:16px; font-weight:700; margin:0 0 4px; }
+  .panel .sub{ font-size:13px; color:var(--ink-soft); margin:0 0 18px; }
+  .hidden{ display:none !important; }
+  .search-box{ margin-bottom:14px; }
+  .search-box input{ width:100%; border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; font-size:14px; font-family:inherit; outline:none; background:#FCFCFD; }
+  .search-box input:focus{ border-color:var(--accent); background:#fff; }
+  .student-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px; }
+  .student-card{ border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+    cursor:pointer; background:#fff; transition:all .12s ease; text-align:left; }
+  .student-card:hover{ border-color:var(--accent); background:var(--accent-tint-2); }
+  .student-card .nm{ font-size:15px; font-weight:700; }
+  .student-card .meta{ font-size:12px; color:var(--ink-soft); margin-top:3px; }
+  .chip-row{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+  .chip-btn{ border:1px solid var(--line); border-radius:10px; padding:10px 18px;
+    background:#fff; font-size:14px; font-weight:600; cursor:pointer; color:var(--ink); transition:all .12s ease; }
+  .chip-btn:hover{ border-color:var(--accent); }
+  .chip-btn.selected{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .field-label{ font-size:13px; font-weight:700; margin-bottom:10px; }
+  .edit-layout{ display:grid; grid-template-columns:380px 1fr; gap:24px; }
+  @media (max-width:1080px){ .edit-layout{ grid-template-columns:1fr; } }
+  .field{ margin-bottom:18px; }
+  .field label{ display:block; font-size:13px; font-weight:600; margin-bottom:8px; }
+  .field .hint{ font-size:12px; color:var(--ink-soft); font-weight:400; margin-left:6px; }
+  input[type="text"],input[type="date"],textarea{ width:100%; border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; font-size:14px; font-family:inherit; color:var(--ink); background:#FCFCFD; outline:none; transition:border-color .15s ease; }
+  input:focus,textarea:focus{ border-color:var(--accent); background:#fff; }
+  textarea{ min-height:150px; resize:vertical; line-height:1.5; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .bullet-list{ display:flex; flex-direction:column; gap:8px; }
+  .bullet-row{ display:flex; align-items:center; gap:8px; }
+  .bullet-row input{ flex:1; }
+  .icon-btn{ width:34px; height:34px; border-radius:8px; border:1px solid var(--line);
+    background:#fff; color:var(--ink-soft); font-size:16px; cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; }
+  .icon-btn:hover{ border-color:#d33; color:#d33; }
+  .add-btn{ margin-top:6px; width:100%; padding:10px; border-radius:10px; border:1px dashed var(--line);
+    background:var(--accent-tint-2); color:var(--accent); font-size:13px; font-weight:600; cursor:pointer; }
+  .add-btn:hover{ background:var(--accent-tint); }
+  .empty-note{ font-size:12px; color:var(--ink-soft); padding:8px 0 2px; }
+  .preview-side{ display:flex; flex-direction:column; align-items:center; gap:16px; }
+  .preview-stage{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:24px; width:100%; display:flex; justify-content:center; }
+  #card{ width:680px; max-width:100%; background:#fff; border-radius:18px; overflow:hidden;
+    border:1px solid var(--line); display:flex; flex-direction:column; }
+  .card-head{ padding:26px 32px 18px; border-bottom:1px solid var(--line); flex-shrink:0; }
+  .card-head .label{ font-size:11px; font-weight:700; color:var(--accent); letter-spacing:.06em; }
+  .card-head .name{ font-size:22px; font-weight:800; margin:6px 0 2px; letter-spacing:-0.01em; }
+  .card-head .date{ font-size:13px; color:var(--ink-soft); }
+  .card-body{ padding:24px 32px 20px; }
+  .section{ position:relative; padding-left:20px; }
+  .section + .section{ margin-top:26px; }
+  .section::before{ content:""; position:absolute; left:0; top:4px; width:8px; height:8px; border-radius:50%; background:var(--accent); }
+  .section .tag{ font-size:12px; font-weight:700; color:var(--accent); margin-bottom:8px; letter-spacing:.02em; }
+  .section .body-text{ font-size:14.5px; line-height:1.7; color:var(--ink); white-space:pre-wrap; word-break:keep-all; }
+  .checklist{ display:flex; flex-direction:column; gap:8px; }
+  .checklist .item{ font-size:14.5px; line-height:1.7; color:var(--ink); }
+  .checklist .item::before{ content:"- "; }
+  /* 이행도 */
+  .compliance{ display:flex; flex-direction:column; gap:8px; }
+  .compliance .item{ font-size:14.5px; line-height:1.7; color:var(--ink); display:flex; gap:8px; align-items:flex-start; }
+  .compliance .mark{ flex-shrink:0; width:1.4em; display:inline-flex; justify-content:center; align-items:center; }
+  .compliance .mark svg{ display:block; margin-top:3px; }
+  .compliance .txt{ flex:1; }
+  /* 편집 화면의 이행도 입력 행 */
+  .comp-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .comp-row .comp-input{ flex:1; }
+  .comp-toggle{ display:flex; gap:4px; flex-shrink:0; }
+  .comp-toggle button{ width:34px; height:34px; border-radius:8px; border:1px solid var(--line);
+    background:#fff; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .comp-toggle button.on-o{ background:#E7F6EC; border-color:#34A853; }
+  .comp-toggle button.on-x{ background:#FDECEC; border-color:#EA4335; }
+  .card-foot{ padding:12px 32px 18px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .card-foot span{ font-size:10.5px; color:#B9BFCD; letter-spacing:.02em; }
+  .actions{ display:flex; gap:10px; width:100%; }
+  .btn{ flex:1; padding:13px 16px; border-radius:10px; border:none; font-size:14px; font-weight:700; cursor:pointer; transition:opacity .15s; }
+  .btn:active{ transform:scale(.98); }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-secondary{ background:#fff; color:var(--accent); border:1px solid var(--accent); }
+  .btn:hover{ opacity:.92; }
+  .back-link{ display:inline-flex; align-items:center; gap:5px; margin-bottom:16px;
+    font-size:13px; color:var(--ink-soft); cursor:pointer; background:none; border:none; padding:0; }
+  .back-link:hover{ color:var(--accent); }
+  .loading{ text-align:center; padding:40px; color:var(--ink-soft); font-size:14px; }
+  .spinner{ width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--accent);
+    border-radius:50%; margin:0 auto 12px; animation:spin .8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .toast{ position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(12px);
+    background:#1F2430; color:#fff; padding:11px 18px; border-radius:10px; font-size:13px; font-weight:600;
+    opacity:0; pointer-events:none; transition:opacity .2s,transform .2s; z-index:50; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .error-box{ background:#FEF2F2; border:1px solid #FCA5A5; color:#B91C1C;
+    padding:14px 16px; border-radius:10px; font-size:13px; margin-top:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <span class="dot"></span>
+    <div>
+      <h1>주간 상담 문자 이미지 생성</h1>
+      <p>학생을 선택하면 시트 내용으로 카톡용 이미지가 자동으로 만들어져요</p>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step-chip active" id="chip1">1. 학생 선택</div>
+    <div class="step-chip" id="chip2">2. 월·주차 선택</div>
+    <div class="step-chip" id="chip3">3. 확인·수정</div>
+  </div>
+  <div class="panel" id="step1">
+    <h2>학생 선택</h2>
+    <p class="sub">재원 중인 학생 목록이에요. 이름으로 검색할 수 있어요.</p>
+    <div class="search-box"><input type="text" id="studentSearch" placeholder="학생 이름 검색..." /></div>
+    <div id="studentLoading" class="loading"><div class="spinner"></div>학생 목록을 불러오는 중...</div>
+    <div class="student-grid hidden" id="studentGrid"></div>
+    <div id="step1Error"></div>
+  </div>
+  <div class="panel hidden" id="step2">
+    <button class="back-link" onclick="goStep1()">← 학생 다시 선택</button>
+    <h2 id="step2Title">월·주차 선택</h2>
+    <p class="sub">몇 월 몇 주차 문자를 이미지로 만들까요?</p>
+    <div class="field-label">월 선택</div>
+    <div class="chip-row" id="monthRow"></div>
+    <div id="weekSection" class="hidden">
+      <div class="field-label">주차 선택</div>
+      <div class="chip-row" id="weekRow"></div>
+    </div>
+    <div id="step2Error"></div>
+  </div>
+  <div class="panel hidden" id="step3">
+    <button class="back-link" onclick="goStep2()">← 월·주차 다시 선택</button>
+    <h2 id="step3Title">내용 확인 및 수정</h2>
+    <p class="sub">시트에서 자동으로 불러왔어요. 잘못된 부분이 있으면 직접 수정하세요. (수정해도 시트에는 반영되지 않아요)</p>
+    <div id="reportLoading" class="loading"><div class="spinner"></div>시트에서 내용을 불러오는 중...</div>
+    <div class="edit-layout hidden" id="editLayout">
+      <div>
+        <div class="field row2">
+          <div><label>학생 이름</label><input type="text" id="studentName" /></div>
+          <div><label>날짜</label><input type="date" id="reportDate" /></div>
+        </div>
+        <div class="field">
+          <label>이번주 상담 내용 <span class="hint">발송내용(문자화)</span></label>
+          <textarea id="thisWeek" placeholder="이번 주 상담 내용"></textarea>
+        </div>
+        <div class="field" id="complianceField">
+          <label>이번주 이행도 <span class="hint">글자 수정 가능 · ⭕/❌ 선택 (미선택은 마크 없이)</span></label>
+          <div id="complianceList"></div>
+          <button type="button" class="add-btn" id="addComplianceBtn">+ 이행도 항목 추가</button>
+        </div>
+        <div class="field">
+          <label>다음주 점검사항 <span class="hint">필요한 만큼 추가/삭제하세요</span></label>
+          <div class="bullet-list" id="bulletList"></div>
+          <button type="button" class="add-btn" id="addBulletBtn">+ 점검사항 추가</button>
+          <div class="empty-note" id="emptyNote" style="display:none;">항목이 없으면 이미지에 이 섹션이 표시되지 않아요.</div>
+        </div>
+      </div>
+      <div class="preview-side">
+        <div class="preview-stage">
+          <div id="card">
+            <div class="card-head">
+              <div class="label">WEEKLY REPORT</div>
+              <div class="name" id="p-name">학생 이름</div>
+              <div class="date" id="p-date"></div>
+            </div>
+            <div class="card-body">
+              <div class="section" id="p-thisweek-section">
+                <div class="tag">이번주 상담 내용</div>
+                <div class="body-text" id="p-thisweek"></div>
+              </div>
+              <div class="section" id="p-compliance-section">
+                <div class="tag">이번주 이행도</div>
+                <div class="compliance" id="p-compliance"></div>
+              </div>
+              <div class="section" id="p-nextweek-section">
+                <div class="tag">다음주 점검사항</div>
+                <div class="checklist" id="p-checklist"></div>
+              </div>
+            </div>
+            <div class="card-foot">
+              <span id="p-academy">유투엠 몰입관 학원</span>
+              <span>이번주 학습 코칭 안내</span>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-secondary" id="copyBtn">이미지 복사</button>
+          <button class="btn btn-primary" id="downloadBtn">이미지 다운로드</button>
+        </div>
+      </div>
+    </div>
+    <div id="step3Error"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+  var SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxxgCOr_tiZYfTpfexF2o82uU9Gcl-zEvd4RnCPvdkCYo1OQ-HC0inJyPA3pMF9qU4/exec";
+  var state = { student:null, month:null, week:null, allStudents:[], compliance:[] };
+  function apiCall(params){
+    var qs = Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
+    return fetch(SCRIPT_URL+'?'+qs).then(function(res){ return res.json(); }).then(function(json){
+      if(!json.ok) throw new Error(json.error||'알 수 없는 오류'); return json.data;
+    });
+  }
+  function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(window._tt); window._tt=setTimeout(function(){ t.classList.remove('show'); },2200); }
+  function showError(id,msg){ document.getElementById(id).innerHTML='<div class="error-box">'+msg+'</div>'; }
+  function clearError(id){ document.getElementById(id).innerHTML=''; }
+  function setStep(n){
+    ['chip1','chip2','chip3'].forEach(function(id,i){ var el=document.getElementById(id);
+      el.classList.remove('active','done');
+      if(i+1<n) el.classList.add('done'); else if(i+1===n) el.classList.add('active'); });
+    document.getElementById('step1').classList.toggle('hidden',n!==1);
+    document.getElementById('step2').classList.toggle('hidden',n!==2);
+    document.getElementById('step3').classList.toggle('hidden',n!==3);
+    window.scrollTo(0,0);
+  }
+  function loadStudents(){
+    apiCall({action:'students'}).then(function(students){
+      state.allStudents=students||[];
+      document.getElementById('studentLoading').classList.add('hidden');
+      document.getElementById('studentGrid').classList.remove('hidden');
+      renderStudents('');
+    }).catch(function(err){
+      document.getElementById('studentLoading').classList.add('hidden');
+      showError('step1Error','학생 목록을 불러오지 못했어요: '+err.message);
+    });
+  }
+  function renderStudents(filter){
+    var grid=document.getElementById('studentGrid'); grid.innerHTML='';
+    var f=(filter||'').trim().toLowerCase();
+    var list=state.allStudents.filter(function(s){ return f===''||s.name.toLowerCase().indexOf(f)!==-1; });
+    if(list.length===0){ grid.innerHTML='<div class="loading" style="grid-column:1/-1;">검색 결과가 없어요.</div>'; return; }
+    list.forEach(function(s){
+      var card=document.createElement('button'); card.className='student-card';
+      card.innerHTML='<div class="nm">'+escapeHtml(s.name)+'</div><div class="meta">'+escapeHtml([s.grade,s.school].filter(Boolean).join(' · '))+'</div>';
+      card.onclick=function(){ selectStudent(s); }; grid.appendChild(card);
+    });
+  }
+  document.getElementById('studentSearch').addEventListener('input',function(e){ renderStudents(e.target.value); });
+  function selectStudent(s){ state.student=s; state.month=null; state.week=null; setStep(2);
+    document.getElementById('step2Title').textContent=s.name+' — 월·주차 선택'; loadMonths(); }
+  function loadMonths(){
+    clearError('step2Error');
+    document.getElementById('monthRow').innerHTML='<div class="loading" style="padding:10px;">월 목록 로딩...</div>';
+    document.getElementById('weekSection').classList.add('hidden');
+    apiCall({action:'months'}).then(function(months){ renderMonths(months||[]); })
+      .catch(function(err){ showError('step2Error','월 목록을 불러오지 못했어요: '+err.message); });
+  }
+  function renderMonths(months){
+    var row=document.getElementById('monthRow'); row.innerHTML='';
+    if(months.length===0){ row.innerHTML='<div class="empty-note">사용 가능한 월 탭이 없어요.</div>'; return; }
+    months.forEach(function(m){ var b=document.createElement('button'); b.className='chip-btn'; b.textContent=m;
+      b.onclick=function(){ selectMonth(m,b); }; row.appendChild(b); });
+  }
+  function selectMonth(m,btn){
+    state.month=m; state.week=null;
+    Array.prototype.forEach.call(document.querySelectorAll('#monthRow .chip-btn'),function(b){ b.classList.toggle('selected',b===btn); });
+    var weekRow=document.getElementById('weekRow');
+    document.getElementById('weekSection').classList.remove('hidden');
+    weekRow.innerHTML='<div class="loading" style="padding:10px;">주차 로딩...</div>';
+    apiCall({action:'weeks',month:m}).then(function(weeks){ renderWeeks(weeks||[]); })
+      .catch(function(err){ showError('step2Error','주차를 불러오지 못했어요: '+err.message); });
+  }
+  function renderWeeks(weeks){
+    var row=document.getElementById('weekRow'); row.innerHTML='';
+    if(weeks.length===0){ row.innerHTML='<div class="empty-note">이 달에 주차 데이터가 없어요.</div>'; return; }
+    weeks.forEach(function(w){ var b=document.createElement('button'); b.className='chip-btn'; b.textContent=w+'주차';
+      b.onclick=function(){ selectWeek(w); }; row.appendChild(b); });
+  }
+  function selectWeek(w){ state.week=w; setStep(3);
+    document.getElementById('step3Title').textContent=state.student.name+' — '+state.month+' '+w+'주차'; loadReport(); }
+  function loadReport(){
+    clearError('step3Error');
+    document.getElementById('reportLoading').classList.remove('hidden');
+    document.getElementById('editLayout').classList.add('hidden');
+    apiCall({action:'report',student:state.student.name,month:state.month,week:state.week}).then(function(data){
+      document.getElementById('reportLoading').classList.add('hidden');
+      document.getElementById('editLayout').classList.remove('hidden');
+      fillEditor(data);
+    }).catch(function(err){
+      document.getElementById('reportLoading').classList.add('hidden');
+      showError('step3Error','내용을 불러오지 못했어요: '+err.message);
+    });
+  }
+  function fillEditor(data){
+    document.getElementById('studentName').value=data.student.name||'';
+    var today=new Date(); document.getElementById('reportDate').value=today.toISOString().slice(0,10);
+    document.getElementById('thisWeek').value=data.thisWeek||'';
+    // 이번주 이행도: [{text, status:null|'O'|'X'}]
+    state.compliance = (data.thisWeekChecks||[]).map(function(t){ return { text:t, status:null }; });
+    renderComplianceEditor();
+    var bl=document.getElementById('bulletList'); bl.innerHTML='';
+    var checks=data.nextWeekChecks||[];
+    if(checks.length===0){ addBulletRow(''); } else { checks.forEach(function(c){ addBulletRow(c); }); }
+    updatePreview();
+  }
+  function renderComplianceEditor(){
+    var list=document.getElementById('complianceList');
+    list.innerHTML='';
+    state.compliance.forEach(function(item, idx){
+      var row=document.createElement('div'); row.className='comp-row';
+
+      var toggle=document.createElement('div'); toggle.className='comp-toggle';
+      var oBtn=document.createElement('button'); oBtn.type='button';
+      oBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="#34A853" stroke-width="2.4"/></svg>';
+      var xBtn=document.createElement('button'); xBtn.type='button';
+      xBtn.innerHTML='<svg width="16" height="16" viewBox="0 0 20 20"><line x1="4" y1="4" x2="16" y2="16" stroke="#EA4335" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="4" x2="4" y2="16" stroke="#EA4335" stroke-width="2.4" stroke-linecap="round"/></svg>';
+      if(item.status==='O') oBtn.classList.add('on-o');
+      if(item.status==='X') xBtn.classList.add('on-x');
+      oBtn.onclick=function(){ item.status=(item.status==='O'?null:'O');
+        oBtn.classList.toggle('on-o', item.status==='O'); xBtn.classList.remove('on-x'); updatePreview(); };
+      xBtn.onclick=function(){ item.status=(item.status==='X'?null:'X');
+        xBtn.classList.toggle('on-x', item.status==='X'); oBtn.classList.remove('on-o'); updatePreview(); };
+      toggle.appendChild(oBtn); toggle.appendChild(xBtn);
+
+      var input=document.createElement('input'); input.type='text'; input.className='comp-input';
+      input.value=item.text; input.placeholder='점검 항목';
+      input.addEventListener('input', function(){ item.text=input.value; updatePreview(); });
+
+      var del=document.createElement('button'); del.type='button'; del.className='icon-btn'; del.title='삭제'; del.textContent='✕';
+      del.onclick=function(){ state.compliance.splice(idx,1); renderComplianceEditor(); };
+
+      row.appendChild(toggle); row.appendChild(input); row.appendChild(del);
+      list.appendChild(row);
+    });
+    updatePreview();
+  }
+  document.getElementById('addComplianceBtn').addEventListener('click', function(){
+    state.compliance.push({ text:'', status:null }); renderComplianceEditor();
+  });
+
+  function addBulletRow(value){
+    var bl=document.getElementById('bulletList'); var row=document.createElement('div'); row.className='bullet-row';
+    var safe=(value||'').replace(/"/g,'&quot;');
+    row.innerHTML='<input type="text" class="bullet-input" placeholder="예: 매일 매3비 1회분 풀었는지 검사" value="'+safe+'" /><button type="button" class="icon-btn remove-btn" title="삭제">✕</button>';
+    bl.appendChild(row);
+    row.querySelector('.bullet-input').addEventListener('input',updatePreview);
+    row.querySelector('.remove-btn').addEventListener('click',function(){ row.remove(); updatePreview(); });
+  }
+  document.getElementById('addBulletBtn').addEventListener('click',function(){ addBulletRow(''); updatePreview(); });
+  function formatDate(dateStr){ if(!dateStr) return ''; var d=new Date(dateStr+'T00:00:00');
+    if(isNaN(d)) return ''; return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate(); }
+  function updatePreview(){
+    var nm=(document.getElementById('studentName').value||'').trim();
+    document.getElementById('p-name').textContent=(nm||'학생')+' 학생';
+    document.getElementById('p-date').textContent=formatDate(document.getElementById('reportDate').value)||'날짜 미입력';
+    var tw=(document.getElementById('thisWeek').value||'').trim();
+    document.getElementById('p-thisweek').textContent=tw||'이번 주 상담 내용을 입력해주세요.';
+    var items=Array.prototype.map.call(document.querySelectorAll('.bullet-input'),function(i){ return i.value.trim(); }).filter(function(v){ return v.length>0; });
+    // 이번주 이행도 미리보기 (텍스트 있는 항목만)
+    var compSection=document.getElementById('p-compliance-section');
+    var compWrap=document.getElementById('p-compliance');
+    compWrap.innerHTML='';
+    var compItems=(state.compliance||[]).filter(function(it){ return (it.text||'').trim()!==''; });
+    if(compItems.length===0){
+      compSection.style.display='none';
+    } else {
+      compSection.style.display='block';
+      compItems.forEach(function(item){
+        var div=document.createElement('div'); div.className='item';
+        var mark=document.createElement('span'); mark.className='mark';
+        if(item.status==='O'){
+          mark.innerHTML='<svg width="15" height="15" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7" fill="none" stroke="#34A853" stroke-width="2.4"/></svg>';
+        } else if(item.status==='X'){
+          mark.innerHTML='<svg width="15" height="15" viewBox="0 0 20 20"><line x1="4" y1="4" x2="16" y2="16" stroke="#EA4335" stroke-width="2.4" stroke-linecap="round"/><line x1="16" y1="4" x2="4" y2="16" stroke="#EA4335" stroke-width="2.4" stroke-linecap="round"/></svg>';
+        } else { mark.textContent=''; }
+        var txt=document.createElement('span'); txt.className='txt'; txt.textContent=item.text.trim();
+        div.appendChild(mark); div.appendChild(txt);
+        compWrap.appendChild(div);
+      });
+    }
+    var checklist=document.getElementById('p-checklist'); var section=document.getElementById('p-nextweek-section'); var note=document.getElementById('emptyNote');
+    checklist.innerHTML='';
+    if(items.length===0){ section.style.display='none'; note.style.display='block'; }
+    else { section.style.display='block'; note.style.display='none';
+      items.forEach(function(t){ var div=document.createElement('div'); div.className='item'; div.textContent=t; checklist.appendChild(div); }); }
+  }
+  document.getElementById('studentName').addEventListener('input',updatePreview);
+  document.getElementById('reportDate').addEventListener('input',updatePreview);
+  document.getElementById('thisWeek').addEventListener('input',updatePreview);
+  function renderCanvas(){ var card=document.getElementById('card');
+    var cap=function(){ return html2canvas(card,{scale:3,backgroundColor:'#ffffff',useCORS:true}); };
+    if(document.fonts&&document.fonts.ready) return document.fonts.ready.then(cap); return cap(); }
+  document.getElementById('downloadBtn').addEventListener('click',function(){
+    renderCanvas().then(function(canvas){ var link=document.createElement('a');
+      var nm=(document.getElementById('studentName').value.trim()||'학생');
+      link.download=nm+'_'+state.month+state.week+'주차.png'; link.href=canvas.toDataURL('image/png'); link.click();
+      showToast('이미지가 다운로드되었어요');
+    }).catch(function(){ showToast('이미지 생성 중 오류가 발생했어요'); });
+  });
+  document.getElementById('copyBtn').addEventListener('click',function(){
+    renderCanvas().then(function(canvas){ canvas.toBlob(function(blob){
+      if(!blob){ showToast('이미지 생성 오류'); return; }
+      if(navigator.clipboard&&window.ClipboardItem){
+        navigator.clipboard.write([new ClipboardItem({'image/png':blob})])
+          .then(function(){ showToast('클립보드에 복사되었어요'); })
+          .catch(function(){ showToast('복사 실패. 다운로드를 이용해주세요'); });
+      } else { showToast('이 브라우저는 이미지 복사를 지원하지 않아요'); }
+    }); }).catch(function(){ showToast('이미지 생성 중 오류가 발생했어요'); });
+  });
+  function goStep1(){ setStep(1); }
+  function goStep2(){ setStep(2); }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  loadStudents();
+</script>
+</body>
+</html>
